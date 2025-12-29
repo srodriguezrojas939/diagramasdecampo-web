@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graficadora de Campo Vectorial - Raiz Cuadrada</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Solve.js"></script>
+    <script src="https://unpkg.com/d3@3/d3.min.js"></script>
+    <script src="https://unpkg.com/function-plot/dist/function-plot.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
+
+        .fade-in { opacity: 0; transform: translateY(25px); animation: fadeUp 0.9s ease forwards; }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+        body { background: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+
+        .calculadora-moderna {
+            max-width: 650px; width: 100%; padding: 40px 30px;
+            background: #F2F2F2; border-radius: 35px;
+            font-family: 'Open Sans', sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        .header-section { text-align: center; margin-bottom: 25px; }
+        .header-section h1 { font-size: 32px; margin: 0; font-family: 'Playfair Display', serif; }
+        .header-section p { font-size: 18px; font-weight: 600; color: #333; font-family: 'Playfair Display', serif; margin: 5px 0; }
+
+        label { display: block; font-size: 13px; margin-bottom: 8px; margin-left: 10px; font-weight: 600; }
+
+        .input-group {
+            display: flex; gap: 10px; position: relative;
+            margin-bottom: 12px; align-items: center;
+        }
+
+        input, select {
+            font-family: 'Open Sans', sans-serif; font-size: 14px;
+            padding: 12px 15px; border: 1px solid #ccc; border-radius: 25px;
+            background: white; box-sizing: border-box; transition: 0.3s;
+            width: 100%;
+        }
+
+        .botones-container { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .boton-estilo {
+            display: flex; align-items: center; justify-content: center;
+            background: white; border: 1px solid #ccc; border-radius: 30px;
+            padding: 12px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s;
+        }
+        .boton-principal { background: black; color: white; border: none; }
+        .boton-secundario { background: #e0e0e0; border: none; }
+
+        #contenedor-grafica {
+            margin-top: 25px; background: white; border-radius: 25px;
+            padding: 10px; border: 1px solid #ddd; overflow: hidden;
+            display: flex; justify-content: center;
+        }
+        #grafica { width: 100%; overflow: hidden; }
+        #info-box { text-align: center; margin-top: 10px; font-size: 12px; color: #666; font-weight: 600; }
+
+        @media (max-width: 500px) {
+            body { padding: 10px; }
+            .calculadora-moderna { padding: 25px 20px; border-radius: 25px; }
+            .header-section h1 { font-size: 26px; }
+            .header-section p { font-size: 16px; }
+            input, select { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="fade-in" style="width: 100%; display: flex; justify-content: center;">
+    <div class="calculadora-moderna">
+        <div class="header-section">
+            <h1>Graficadora</h1>
+            <p>√(Raiz) Cuadrada²</p>
+        </div>
+
+        <div>
+            <label>Componente horizontal P(x, y)</label>
+            <div class="input-group">
+                <input id="input-p" placeholder="Ej: -y" value="-y">
+            </div>
+            
+            <label>Componente vertical Q(x, y)</label>
+            <div class="input-group">
+                <input id="input-q" placeholder="Ej: x" value="x">
+            </div>
+        </div>
+
+        <div class="botones-container">
+            <button onclick="procesar()" class="boton-estilo boton-principal">Actualizar Campo Vectorial</button>
+            <button onclick="exportarImagen()" class="boton-estilo">
+                <img src="https://cdn-icons-png.flaticon.com/512/724/724933.png" width="16" style="margin-right:8px"> 
+                Descargar PNG
+            </button>
+        </div>
+
+        <div id="contenedor-grafica">
+            <div id="grafica"></div>
+        </div>
+        <div id="info-box">Visualizando líneas de flujo del campo</div>
+    </div>
+</div>
+
+<canvas id="canvas-export" style="display:none;"></canvas>
+
+<script>
+window.onload = function() {
+    procesar();
+};
+
+window.addEventListener('resize', () => {
+    procesar();
+});
+
+function procesar() {
+    const pExpr = document.getElementById('input-p').value || "0";
+    const qExpr = document.getElementById('input-q').value || "0";
+    const info = document.getElementById('info-box');
+    const contenedor = document.getElementById('contenedor-grafica');
+    document.getElementById('grafica').innerHTML = "";
+    
+    const anchoDinamico = contenedor.offsetWidth - 20;
+
+    try {
+        // Creamos una malla de puntos para el campo vectorial
+        let vectorData = [];
+        const steps = 15; // Densidad del campo
+        const range = 10;
+        const stepSize = (range * 2) / steps;
+
+        for (let i = -range; i <= range; i += stepSize) {
+            for (let j = -range; j <= range; j += stepSize) {
+                try {
+                    // Evaluar componentes en el punto (i, j)
+                    let vx = parseFloat(nerdamer(pExpr).evaluate({x: i, y: j}).toString());
+                    let vy = parseFloat(nerdamer(qExpr).evaluate({x: i, y: j}).toString());
+
+                    if (!isNaN(vx) && !isNaN(vy)) {
+                        // Normalización suave para estética de las flechas
+                        const mag = Math.sqrt(vx*vx + vy*vy);
+                        const scale = 0.5; // Ajuste de tamaño de flecha
+                        const dx = (vx / (mag + 0.1)) * scale;
+                        const dy = (vy / (mag + 0.1)) * scale;
+
+                        vectorData.push({
+                            points: [[i, j], [i + dx, j + dy]],
+                            fnType: 'points',
+                            graphType: 'polyline',
+                            color: '#333333',
+                            attr: { 'stroke-width': 1.5 }
+                        });
+                    }
+                } catch(e) {}
+            }
+        }
+
+        functionPlot({
+            target: "#grafica",
+            width: anchoDinamico,
+            height: anchoDinamico * 0.8,
+            grid: true,
+            disableZoom: false,
+            xAxis: { domain: [-10, 10] },
+            yAxis: { domain: [-8, 8] },
+            data: vectorData
+        });
+
+    } catch (e) {
+        info.innerHTML = "<span style='color:red'>Error en la expresión</span>";
+    }
+}
+
+function exportarImagen() {
+    const svgElement = document.querySelector('#grafica svg');
+    if(!svgElement) return;
+    const canvas = document.getElementById('canvas-export');
+    const ctx = canvas.getContext('2d');
+    const svgData = new XMLSerializer().serializeToString(svgElement);
+    const img = new Image();
+    const svgSize = svgElement.getBoundingClientRect();
+    
+    canvas.width = svgSize.width * 2; 
+    canvas.height = svgSize.height * 2;
+    const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+    const url = URL.createObjectURL(svgBlob);
+
+    img.onload = function() {
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Marca de agua solicitada
+        ctx.font = "bold 40px 'Playfair Display'";
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.textAlign = "right";
+        ctx.fillText("√(Raiz) Cuadrada²", canvas.width - 40, canvas.height - 40);
+        
+        const link = document.createElement('a');
+        link.download = 'campo-vectorial-raiz-cuadrada.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+    img.src = url;
+}
+</script>
+</body>
+</html>
