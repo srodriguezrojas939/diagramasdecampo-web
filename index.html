@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Graficadora de Campo Vectorial - Raiz Cuadrada</title>
+    <title>Diagrama de campo vectorial - Raiz Cuadrada</title>
 
     <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
@@ -29,7 +29,7 @@
         }
 
         .header-section { text-align: center; margin-bottom: 25px; }
-        .header-section h1 { font-size: 32px; margin: 0; font-family: 'Playfair Display', serif; }
+        .header-section h1 { font-size: 28px; margin: 0; font-family: 'Playfair Display', serif; }
         .header-section p { font-size: 18px; font-weight: 600; color: #333; font-family: 'Playfair Display', serif; margin: 5px 0; }
 
         label { display: block; font-size: 13px; margin-bottom: 8px; margin-left: 10px; font-weight: 600; }
@@ -53,12 +53,11 @@
             padding: 12px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s;
         }
         .boton-principal { background: black; color: white; border: none; }
-        .boton-secundario { background: #e0e0e0; border: none; }
 
         #contenedor-grafica {
             margin-top: 25px; background: white; border-radius: 25px;
             padding: 10px; border: 1px solid #ddd; overflow: hidden;
-            display: flex; justify-content: center;
+            display: flex; justify-content: center; position: relative;
         }
         #grafica { width: 100%; overflow: hidden; }
         #info-box { text-align: center; margin-top: 10px; font-size: 12px; color: #666; font-weight: 600; }
@@ -66,8 +65,7 @@
         @media (max-width: 500px) {
             body { padding: 10px; }
             .calculadora-moderna { padding: 25px 20px; border-radius: 25px; }
-            .header-section h1 { font-size: 26px; }
-            .header-section p { font-size: 16px; }
+            .header-section h1 { font-size: 22px; }
             input, select { font-size: 16px; }
         }
     </style>
@@ -77,7 +75,7 @@
 <div class="fade-in" style="width: 100%; display: flex; justify-content: center;">
     <div class="calculadora-moderna">
         <div class="header-section">
-            <h1>Graficadora</h1>
+            <h1>Diagrama de campo vectorial</h1>
             <p>√(Raiz) Cuadrada²</p>
         </div>
 
@@ -91,10 +89,20 @@
             <div class="input-group">
                 <input id="input-q" placeholder="Ej: x" value="x">
             </div>
+
+            <label>Mapa de colores (Magnitud)</label>
+            <div class="input-group">
+                <select id="mapa-color" onchange="procesar()">
+                    <option value="viridis">Viridis (Púrpura a Amarillo)</option>
+                    <option value="plasma">Plasma (Azul a Naranja)</option>
+                    <option value="electric">Electric (Azul a Rojo)</option>
+                    <option value="monocromo">Monocromo (Gris a Negro)</option>
+                </select>
+            </div>
         </div>
 
         <div class="botones-container">
-            <button onclick="procesar()" class="boton-estilo boton-principal">Actualizar Campo Vectorial</button>
+            <button onclick="procesar()" class="boton-estilo boton-principal">Actualizar Campo</button>
             <button onclick="exportarImagen()" class="boton-estilo">
                 <img src="https://cdn-icons-png.flaticon.com/512/724/724933.png" width="16" style="margin-right:8px"> 
                 Descargar PNG
@@ -104,76 +112,127 @@
         <div id="contenedor-grafica">
             <div id="grafica"></div>
         </div>
-        <div id="info-box">Visualizando líneas de flujo del campo</div>
+        <div id="info-box">Flechas coloreadas por magnitud del vector</div>
     </div>
 </div>
 
 <canvas id="canvas-export" style="display:none;"></canvas>
 
 <script>
-window.onload = function() {
-    procesar();
+const paletas = {
+    viridis: ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'],
+    plasma: ['#0d0887', '#7e03a8', '#cb4679', '#f89441', '#f0f921'],
+    electric: ['#0000ff', '#8000ff', '#ff00ff', '#ff0000', '#ffff00'],
+    monocromo: ['#cccccc', '#999999', '#666666', '#333333', '#000000']
 };
 
-window.addEventListener('resize', () => {
-    procesar();
-});
+function interpolarColor(rango, valor) {
+    const p = Math.max(0, Math.min(1, valor));
+    const idx = Math.floor(p * (rango.length - 1));
+    const nextIdx = Math.min(idx + 1, rango.length - 1);
+    const f = (p * (rango.length - 1)) - idx;
+    
+    const c1 = hexToRgb(rango[idx]);
+    const c2 = hexToRgb(rango[nextIdx]);
+    
+    const r = Math.round(c1.r + (c2.r - c1.r) * f);
+    const g = Math.round(c1.g + (c2.g - c1.g) * f);
+    const b = Math.round(c1.b + (c2.b - c1.b) * f);
+    
+    return `rgb(${r},${g},${b})`;
+}
+
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : {r:0, g:0, b:0};
+}
+
+window.onload = procesar;
+window.addEventListener('resize', procesar);
 
 function procesar() {
     const pExpr = document.getElementById('input-p').value || "0";
     const qExpr = document.getElementById('input-q').value || "0";
+    const paletaNombre = document.getElementById('mapa-color').value;
     const info = document.getElementById('info-box');
     const contenedor = document.getElementById('contenedor-grafica');
     document.getElementById('grafica').innerHTML = "";
     
     const anchoDinamico = contenedor.offsetWidth - 20;
+    const paletaActiva = paletas[paletaNombre];
 
     try {
-        // Creamos una malla de puntos para el campo vectorial
         let vectorData = [];
-        const steps = 15; // Densidad del campo
+        const steps = 14; 
         const range = 10;
         const stepSize = (range * 2) / steps;
+
+        // Primero calculamos todas las magnitudes para normalizar el color
+        let magnitudes = [];
+        let puntos = [];
 
         for (let i = -range; i <= range; i += stepSize) {
             for (let j = -range; j <= range; j += stepSize) {
                 try {
-                    // Evaluar componentes en el punto (i, j)
                     let vx = parseFloat(nerdamer(pExpr).evaluate({x: i, y: j}).toString());
                     let vy = parseFloat(nerdamer(qExpr).evaluate({x: i, y: j}).toString());
-
-                    if (!isNaN(vx) && !isNaN(vy)) {
-                        // Normalización suave para estética de las flechas
-                        const mag = Math.sqrt(vx*vx + vy*vy);
-                        const scale = 0.5; // Ajuste de tamaño de flecha
-                        const dx = (vx / (mag + 0.1)) * scale;
-                        const dy = (vy / (mag + 0.1)) * scale;
-
-                        vectorData.push({
-                            points: [[i, j], [i + dx, j + dy]],
-                            fnType: 'points',
-                            graphType: 'polyline',
-                            color: '#333333',
-                            attr: { 'stroke-width': 1.5 }
-                        });
+                    let mag = Math.sqrt(vx*vx + vy*vy);
+                    if(!isNaN(mag)) {
+                        magnitudes.push(mag);
+                        puntos.push({i, j, vx, vy, mag});
                     }
-                } catch(e) {}
+                } catch(e){}
             }
         }
+
+        const maxMag = Math.max(...magnitudes) || 1;
+
+        puntos.forEach(p => {
+            const scale = 0.6; 
+            const nvx = (p.vx / (p.mag + 0.1)) * scale;
+            const nvy = (p.vy / (p.mag + 0.1)) * scale;
+            
+            const color = interpolarColor(paletaActiva, p.mag / maxMag);
+            
+            // Cuerpo de la flecha
+            const xFinal = p.i + nvx;
+            const yFinal = p.j + nvy;
+
+            // Puntas de la flecha (Cálculo trigonométrico)
+            const angulo = Math.atan2(nvy, nvx);
+            const puntaLong = scale * 0.3;
+            const anguloPunta = Math.PI / 6; // 30 grados
+
+            const p1x = xFinal - puntaLong * Math.cos(angulo - anguloPunta);
+            const p1y = yFinal - puntaLong * Math.sin(angulo - anguloPunta);
+            const p2x = xFinal - puntaLong * Math.cos(angulo + anguloPunta);
+            const p2y = yFinal - puntaLong * Math.sin(angulo + anguloPunta);
+
+            vectorData.push({
+                points: [[p.i, p.j], [xFinal, yFinal], [p1x, p1y], [xFinal, yFinal], [p2x, p2y]],
+                fnType: 'points',
+                graphType: 'polyline',
+                color: color,
+                attr: { 'stroke-width': 2 }
+            });
+        });
 
         functionPlot({
             target: "#grafica",
             width: anchoDinamico,
             height: anchoDinamico * 0.8,
             grid: true,
-            disableZoom: false,
-            xAxis: { domain: [-10, 10] },
-            yAxis: { domain: [-8, 8] },
+            xAxis: { domain: [-11, 11] },
+            yAxis: { domain: [-9, 9] },
             data: vectorData
         });
 
     } catch (e) {
-        info.innerHTML = "<span style='color:red'>Error en la expresión</span>";
+        info.innerHTML = "<span style='color:red'>Error matemático</span>";
     }
 }
 
@@ -188,22 +247,20 @@ function exportarImagen() {
     
     canvas.width = svgSize.width * 2; 
     canvas.height = svgSize.height * 2;
-    const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
-    const url = URL.createObjectURL(svgBlob);
+    const url = URL.createObjectURL(new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'}));
 
     img.onload = function() {
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         
-        // Marca de agua solicitada
-        ctx.font = "bold 40px 'Playfair Display'";
-        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.font = "bold 42px 'Playfair Display'";
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
         ctx.textAlign = "right";
-        ctx.fillText("√(Raiz) Cuadrada²", canvas.width - 40, canvas.height - 40);
+        ctx.fillText("√(Raiz) Cuadrada²", canvas.width - 50, canvas.height - 50);
         
         const link = document.createElement('a');
-        link.download = 'campo-vectorial-raiz-cuadrada.png';
+        link.download = 'diagrama-campo-vectorial-raiz-cuadrada.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
         URL.revokeObjectURL(url);
