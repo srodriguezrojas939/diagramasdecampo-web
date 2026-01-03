@@ -168,18 +168,75 @@
 
         <div id="ejemplos" class="tab-content active"><div class="symbols-grid" id="grid-ejemplos"></div></div>
         <div id="tab-simbolos" class="tab-content"><div class="symbols-grid" id="grid-simbolos"></div></div>
-        <div id="guia" class="tab-content">
-            <div class="guia-uso-container">
-                <h3>Cómo graficar campos</h3>
-                <p>Un campo vectorial asigna un vector <b>F(x,y) = P i + Q j</b> a cada punto del plano.</p>
-                <div class="code-box">
-                    <b>P:</b> Define la fuerza horizontal.<br>
-                    <b>Q:</b> Define la fuerza vertical.
-                </div>
-                <p><b>Sintaxis:</b> Usa <code>^</code> para potencias (x^2), <code>*</code> para multiplicar y funciones como <code>sin(), cos(), exp(), sqrt()</code>.</p>
-                <p><b>Colores:</b> El color de la flecha cambia del primer selector al segundo según qué tan "fuerte" (largo) sea el vector en ese punto.</p>
-            </div>
-        </div>
+       <div id="guia" class="tab-content" style="line-height: 1.6; color: #333; background: white; border: 1px solid #ccc; padding: 40px; border-radius: 40px; text-align: left; margin-top: 20px;">
+    
+    <h2 style="font-family: 'Playfair Display', serif; font-size: 36px; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px;">Guia de usos.</h2>
+    
+    <p>Esta herramienta permite representar magnitudes y direcciones de fuerzas en un plano bidimensional a través de vectores posicionados en una malla de coordenadas.</p>
+
+    <h3 style="font-size: 24px; margin-top: 35px; font-weight: bold;">1. Componentes del Campo</h3>
+    <p>Un campo vectorial asigna un vector <strong>F(x,y) = P i + Q j</strong> a cada punto del plano. Para graficarlo, debe definir el comportamiento de sus dos componentes principales:</p>
+    
+    <div style="border: 1px solid #ccc; border-radius: 15px; overflow: hidden; margin: 20px 0;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f8f8f8; border-bottom: 1px solid #ccc;">
+                    <th style="padding: 12px; text-align: left; border-right: 1px solid #ccc;">Componente</th>
+                    <th style="padding: 12px; text-align: left;">Descripción funcional</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #ccc;">
+                    <td style="padding: 12px; border-right: 1px solid #ccc;"><strong>P (i)</strong></td>
+                    <td style="padding: 12px;">Define la fuerza o desplazamiento en el eje <strong>Horizontal</strong>.</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px; border-right: 1px solid #ccc;"><strong>Q (j)</strong></td>
+                    <td style="padding: 12px;">Define la fuerza o desplazamiento en el eje <strong>Vertical</strong>.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h3 style="font-size: 24px; margin-top: 35px; font-weight: bold;">2. Sintaxis Matemática</h3>
+    <p>Utilice las reglas de escritura estándar para que el motor procese las ecuaciones correctamente:</p>
+    <ul>
+        <li><strong>Potencias:</strong> Se representan con el símbolo <strong>^</strong> (ejemplo: x^2).</li>
+        <li><strong>Multiplicación:</strong> Es obligatorio el uso del asterisco <strong>*</strong> (ejemplo: 2*x*y).</li>
+        <li><strong>Variables permitidas:</strong> Utilice únicamente <strong>x</strong> y <strong>y</strong> en minúsculas.</li>
+        <li><strong>Funciones:</strong> Puede usar comandos como <strong>sin()</strong>, <strong>cos()</strong>, <strong>exp()</strong>, <strong>sqrt()</strong>, <strong>abs()</strong> y <strong>log()</strong>.</li>
+    </ul>
+
+    <h3 style="font-size: 24px; margin-top: 35px; font-weight: bold;">3. Interpretación Visual y Colores</h3>
+    <p>El sistema utiliza un código visual basado en la <strong>magnitud</strong> (largo) del vector:</p>
+    <ul>
+        <li><strong>Gradiente:</strong> El color de las flechas transita desde el primer selector de color hasta el segundo según la intensidad de la fuerza en ese punto.</li>
+        <li><strong>Relación:</strong> Los vectores más cortos representan una magnitud menor (primer color), mientras que los más largos indican mayor fuerza (segundo color).</li>
+    </ul>
+
+    
+
+    <h3 style="font-size: 24px; margin-top: 35px; font-weight: bold;">4. Control de la Visualización</h3>
+    <p>Para analizar el comportamiento del flujo o campo de fuerzas, puede ajustar los siguientes parámetros:</p>
+    <ul>
+        <li><strong>Densidad:</strong> Controla la cantidad de flechas presentes en la cuadrícula.</li>
+        <li><strong>Escala:</strong> Ajusta el tamaño visual de los vectores para evitar que se solapen entre sí.</li>
+        <li><strong>Rango:</strong> Define el límite de los ejes X e Y para visualizar áreas específicas del plano.</li>
+    </ul>
+
+    <h3 style="font-size: 24px; margin-top: 35px; font-weight: bold;">5. Interacción con el Lienzo</h3>
+    <ul>
+        <li><strong>Navegación:</strong> Arrastre con el clic izquierdo para desplazarse por el plano de coordenadas.</li>
+        <li><strong>Zoom:</strong> Utilice la rueda del ratón para acercar o alejar la vista.</li>
+        <li><strong>Captura:</strong> El botón de "Descargar PNG" guardará una imagen de alta resolución de la configuración actual de su campo vectorial.</li>
+    </ul>
+
+    <div style="border: 1px solid #ccc; padding: 25px; border-radius: 20px; margin-top: 35px; background: #fafafa; font-style: italic;">
+        <strong>Nota técnica:</strong>
+        <p style="margin-top: 10px;">En física, este tipo de representaciones son esenciales para visualizar fenómenos como el flujo de fluidos, campos eléctricos o gradientes de temperatura. Experimente con funciones combinadas para observar puntos de convergencia (sumideros) o divergencia (fuentes).</p>
+    </div>
+
+</div>
     </div>
 </div>
 
