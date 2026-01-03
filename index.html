@@ -14,17 +14,17 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
 
         .fade-in { opacity: 0; transform: translateY(25px); animation: fadeUp 0.9s ease forwards; }
         @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
-        body { background: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        body { background: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; font-family: 'Open Sans', sans-serif; }
 
         .calculadora-moderna {
             max-width: 650px; width: 100%; padding: 40px 30px;
             background: #F2F2F2; border-radius: 35px;
-            font-family: 'Open Sans', sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             box-sizing: border-box;
         }
 
@@ -32,37 +32,37 @@
         .header-section h1 { font-size: 28px; margin: 0; font-family: 'Playfair Display', serif; }
         .header-section p { font-size: 18px; font-weight: 600; color: #333; font-family: 'Playfair Display', serif; margin: 5px 0; }
 
-        label { display: block; font-size: 13px; margin-bottom: 8px; margin-left: 10px; font-weight: 600; }
+        label { display: block; font-size: 11px; margin-bottom: 6px; margin-left: 12px; font-weight: 700; text-transform: uppercase; color: #666; letter-spacing: 0.5px; }
 
-        .input-group {
-            display: flex; gap: 10px; position: relative;
-            margin-bottom: 15px; align-items: center;
-        }
+        .input-group { display: flex; gap: 10px; margin-bottom: 15px; align-items: center; }
 
-        input, select {
-            font-family: 'Open Sans', sans-serif; font-size: 14px;
-            padding: 12px 15px; border: 1px solid #ccc; border-radius: 25px;
-            background: white; box-sizing: border-box; transition: 0.3s;
-            width: 100%;
+        input[type="text"], input[type="number"] {
+            font-size: 14px; padding: 12px 18px; border: 1px solid #ccc; border-radius: 25px;
+            background: white; width: 100%; box-sizing: border-box; outline: none;
         }
 
-        /* Estilo para Sliders */
-        input[type=range] {
-            -webkit-appearance: none; background: transparent; padding: 0; border: none;
+        /* Estilo Color Picker Cuadrado */
+        .color-picker-container {
+            width: 45px; height: 45px; flex-shrink: 0; position: relative;
+            border-radius: 12px; overflow: hidden; border: 2px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 6px; cursor: pointer; background: #ddd; border-radius: 3px;
+        input[type="color"] {
+            position: absolute; top: -10px; left: -10px; width: 70px; height: 70px;
+            cursor: pointer; border: none; padding: 0; background: none;
         }
-        input[type=range]::-webkit-slider-thumb {
-            height: 18px; width: 18px; border-radius: 50%; background: black;
-            cursor: pointer; -webkit-appearance: none; margin-top: -6px;
-        }
+
+        /* Sliders */
+        input[type=range] { -webkit-appearance: none; background: transparent; padding: 0; border: none; width: 100%; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #ddd; border-radius: 3px; }
+        input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radius: 50%; background: black; cursor: pointer; -webkit-appearance: none; margin-top: -6px; }
 
         .botones-container { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .boton-estilo {
             display: flex; align-items: center; justify-content: center;
             background: white; border: 1px solid #ccc; border-radius: 30px;
-            padding: 12px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s;
+            padding: 12px; cursor: pointer; font-weight: 700; font-size: 13px; transition: 0.3s;
+            color: black; text-decoration: none;
         }
         .boton-principal { background: black; color: white; border: none; }
 
@@ -71,12 +71,42 @@
             padding: 10px; border: 1px solid #ddd; overflow: hidden;
             display: flex; justify-content: center; position: relative;
         }
-        #grafica { width: 100%; overflow: hidden; }
+        #grafica { width: 100%; }
         #info-box { text-align: center; margin-top: 10px; font-size: 12px; color: #666; font-weight: 600; }
 
-        @media (max-width: 500px) {
-            .header-section h1 { font-size: 22px; }
+        /* PILLS NAVIGATION */
+        .pills-nav-container {
+            background: #e4e4e4; padding: 6px; border-radius: 40px;
+            display: flex; justify-content: space-between; gap: 3px; margin-top: 25px;
+            border: 1px solid #ccc;
         }
+        .pill-btn {
+            background: transparent; border: none; padding: 10px; border-radius: 30px;
+            font-size: 11px; font-weight: 700; color: #666; cursor: pointer; 
+            transition: 0.3s; flex: 1; text-transform: uppercase;
+        }
+        .pill-btn.active { background: white; color: black; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+        .tab-content { display: none; margin-top: 20px; }
+        .tab-content.active { display: block; }
+
+        .symbols-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+        .sym-card {
+            background: white; border-radius: 20px; padding: 15px 10px;
+            text-align: center; cursor: pointer; transition: 0.2s;
+            border: 1px solid #ccc; display: flex; flex-direction: column; min-height: 70px; justify-content: center;
+        }
+        .sym-card span { font-size: 13px; font-weight: 700; color: #000; }
+        .sym-card small { font-size: 10px; color: #999; text-transform: uppercase; margin-top: 4px; }
+
+        .guia-uso-container { background: white; border-radius: 25px; padding: 25px; color: #444; border: 1px solid #ccc; font-size: 14px; }
+        .guia-uso-container h3 { font-family: 'Playfair Display', serif; margin-top: 0; }
+        .code-box { background: #f8f8f8; padding: 10px; border-radius: 10px; font-family: monospace; font-size: 12px; margin: 10px 0; border-left: 3px solid black; }
+
+        @media (max-width: 500px) { .header-section h1 { font-size: 22px; } .symbols-grid { grid-template-columns: 1fr 1fr; } }
     </style>
 </head>
 <body>
@@ -89,33 +119,29 @@
         </div>
 
         <div class="input-container">
-            <label>P(x, y) [Horizontal]</label>
+            <label>Componente P(x, y) [Horizontal]</label>
             <div class="input-group">
-                <input id="input-p" value="-y">
+                <input id="input-p" type="text" value="-y">
+                <div class="color-picker-container">
+                    <input type="color" id="color-start" value="#0000ff">
+                </div>
             </div>
             
-            <label>Q(x, y) [Vertical]</label>
+            <label>Componente Q(x, y) [Vertical]</label>
             <div class="input-group">
-                <input id="input-q" value="x">
+                <input id="input-q" type="text" value="x">
+                <div class="color-picker-container">
+                    <input type="color" id="color-end" value="#ff0000">
+                </div>
             </div>
 
-            <label>Mapa de colores</label>
-            <div class="input-group">
-                <select id="mapa-color" onchange="procesar()">
-                    <option value="viridis">Viridis (Púrpura a Amarillo)</option>
-                    <option value="plasma">Plasma (Azul a Naranja)</option>
-                    <option value="electric">Electric (Azul a Rojo)</option>
-                    <option value="monocromo">Monocromo (Gris a Negro)</option>
-                </select>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px;">
                 <div>
-                    <label>Densidad de líneas</label>
+                    <label>Densidad</label>
                     <input type="range" id="densidad" min="10" max="40" value="22" oninput="procesar()">
                 </div>
                 <div>
-                    <label>Tamaño de flechas</label>
+                    <label>Tamaño Flechas</label>
                     <input type="range" id="magnitud" min="0.1" max="2.0" step="0.1" value="0.8" oninput="procesar()">
                 </div>
             </div>
@@ -132,28 +158,86 @@
         <div id="contenedor-grafica">
             <div id="grafica"></div>
         </div>
-        <div id="info-box">Ajusta los controles deslizantes para cambiar la estética</div>
+        <div id="info-box">Colores interpolados por magnitud del vector</div>
+
+        <div class="pills-nav-container">
+            <button class="pill-btn active" onclick="showTab('ejemplos', this)">Ejemplos</button>
+            <button class="pill-btn" onclick="showTab('tab-simbolos', this)">Simbolos</button>
+            <button class="pill-btn" onclick="showTab('guia', this)">Guia</button>
+        </div>
+
+        <div id="ejemplos" class="tab-content active"><div class="symbols-grid" id="grid-ejemplos"></div></div>
+        <div id="tab-simbolos" class="tab-content"><div class="symbols-grid" id="grid-simbolos"></div></div>
+        <div id="guia" class="tab-content">
+            <div class="guia-uso-container">
+                <h3>Cómo graficar campos</h3>
+                <p>Un campo vectorial asigna un vector <b>F(x,y) = P i + Q j</b> a cada punto del plano.</p>
+                <div class="code-box">
+                    <b>P:</b> Define la fuerza horizontal.<br>
+                    <b>Q:</b> Define la fuerza vertical.
+                </div>
+                <p><b>Sintaxis:</b> Usa <code>^</code> para potencias (x^2), <code>*</code> para multiplicar y funciones como <code>sin(), cos(), exp(), sqrt()</code>.</p>
+                <p><b>Colores:</b> El color de la flecha cambia del primer selector al segundo según qué tan "fuerte" (largo) sea el vector en ese punto.</p>
+            </div>
+        </div>
     </div>
 </div>
 
 <canvas id="canvas-export" style="display:none;"></canvas>
 
 <script>
-const paletas = {
-    viridis: ['#440154', '#3b528b', '#21918c', '#5ec962', '#fde725'],
-    plasma: ['#0d0887', '#7e03a8', '#cb4679', '#f89441', '#f0f921'],
-    electric: ['#0000ff', '#8000ff', '#ff00ff', '#ff0000', '#ffff00'],
-    monocromo: ['#cccccc', '#999999', '#666666', '#333333', '#000000']
+const dataTabs = {
+    ejemplos: [
+        { s: '-y | x', t: 'VÓRTICE / ROTACIÓN' },
+        { s: 'x | y', t: 'FUENTE / REPULSIÓN' },
+        { s: '-x | -y', t: 'SUMIDERO / ATRACCIÓN' },
+        { s: 'y | sin(x)', t: 'ONDAS DE CORTE' },
+        { s: 'x-y | x+y', t: 'ESPIRAL EXPANSIVA' },
+        { s: 'sin(y) | sin(x)', t: 'CAMPO PERIÓDICO' },
+        { s: '1 | cos(x)', t: 'FLUJO UNIDIRECCIONAL' },
+        { s: 'y | -x', t: 'ROTACIÓN HORARIA' }
+    ],
+    simbolos: [
+        { s: '(', t: 'ABRIR' }, { s: ')', t: 'CERRAR' }, { s: '+', t: 'SUMA' }, { s: '-', t: 'RESTA' },
+        { s: '*', t: 'MULT.' }, { s: '/', t: 'DIV.' }, { s: '^', t: 'POTENCIA' }, { s: 'sqrt()', t: 'RAÍZ' },
+        { s: 'x', t: 'VAR X' }, { s: 'y', t: 'VAR Y' }, { s: 'pi', t: 'PI' }, { s: 'e', t: 'EULER' }
+    ]
 };
 
-function interpolarColor(rango, valor) {
-    const p = Math.max(0, Math.min(1, valor));
-    const idx = Math.floor(p * (rango.length - 1));
-    const nextIdx = Math.min(idx + 1, rango.length - 1);
-    const f = (p * (rango.length - 1)) - idx;
-    const c1 = hexToRgb(rango[idx]);
-    const c2 = hexToRgb(rango[nextIdx]);
-    return `rgb(${Math.round(c1.r+(c2.r-c1.r)*f)},${Math.round(c1.g+(c2.g-c1.g)*f)},${Math.round(c1.b+(c2.b-c1.b)*f)})`;
+function renderGrids() {
+    document.getElementById('grid-ejemplos').innerHTML = dataTabs.ejemplos.map(item => `
+        <div class="sym-card" onclick="aplicarEjemplo('${item.s}')">
+            <span>${item.s}</span>
+            <small>${item.t}</small>
+        </div>
+    `).join('');
+
+    document.getElementById('grid-simbolos').innerHTML = dataTabs.simbolos.map(item => `
+        <div class="sym-card" onclick="insertarSimbolo('${item.s}')">
+            <span>${item.s}</span>
+            <small>${item.t}</small>
+        </div>
+    `).join('');
+}
+
+function aplicarEjemplo(val) {
+    const [p, q] = val.split(' | ');
+    document.getElementById('input-p').value = p.trim();
+    document.getElementById('input-q').value = q.trim();
+    procesar();
+}
+
+function insertarSimbolo(val) {
+    const input = document.activeElement.tagName === 'INPUT' ? document.activeElement : document.getElementById('input-p');
+    input.value += val;
+    input.focus();
+}
+
+function showTab(id, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
 }
 
 function hexToRgb(hex) {
@@ -161,15 +245,24 @@ function hexToRgb(hex) {
     return {r, g, b};
 }
 
-window.onload = procesar;
+function interpolarColor(c1, c2, valor) {
+    const p = Math.max(0, Math.min(1, valor));
+    const r = Math.round(c1.r + (c2.r - c1.r) * p);
+    const g = Math.round(c1.g + (c2.g - c1.g) * p);
+    const b = Math.round(c1.b + (c2.b - c1.b) * p);
+    return `rgb(${r},${g},${b})`;
+}
+
+window.onload = () => { renderGrids(); procesar(); };
 window.addEventListener('resize', procesar);
 
 function procesar() {
     const pExpr = document.getElementById('input-p').value;
     const qExpr = document.getElementById('input-q').value;
-    const paletaActiva = paletas[document.getElementById('mapa-color').value];
     const nSteps = parseInt(document.getElementById('densidad').value);
     const mScale = parseFloat(document.getElementById('magnitud').value);
+    const colorStart = hexToRgb(document.getElementById('color-start').value);
+    const colorEnd = hexToRgb(document.getElementById('color-end').value);
     
     document.getElementById('grafica').innerHTML = "";
     const width = document.getElementById('contenedor-grafica').offsetWidth - 20;
@@ -178,8 +271,8 @@ function procesar() {
         let vectorData = [];
         const range = 10;
         const stepSize = (range * 2) / nSteps;
-
         let calculos = [];
+
         for (let i = -range; i <= range; i += stepSize) {
             for (let j = -range; j <= range; j += stepSize) {
                 try {
@@ -196,7 +289,7 @@ function procesar() {
         calculos.forEach(p => {
             const nvx = (p.vx / (p.mag + 0.001)) * mScale;
             const nvy = (p.vy / (p.mag + 0.001)) * mScale;
-            const color = interpolarColor(paletaActiva, p.mag / maxMag);
+            const color = interpolarColor(colorStart, colorEnd, p.mag / maxMag);
             
             const xF = p.i + nvx, yF = p.j + nvy;
             const angle = Math.atan2(nvy, nvx);
@@ -206,7 +299,7 @@ function procesar() {
 
             vectorData.push({
                 points: [[p.i, p.j], [xF, yF], [p1x, p1y], [xF, yF], [p2x, p2y]],
-                fnType: 'points', graphType: 'polyline', color: color, attr: { 'stroke-width': 1.5 }
+                fnType: 'points', graphType: 'polyline', color: color, attr: { 'stroke-width': 1.8 }
             });
         });
 
@@ -215,7 +308,7 @@ function procesar() {
             grid: true, xAxis: { domain: [-11, 11] }, yAxis: { domain: [-9, 9] },
             data: vectorData
         });
-    } catch (e) {}
+    } catch (e) { console.error(e); }
 }
 
 function exportarImagen() {
@@ -232,7 +325,7 @@ function exportarImagen() {
         ctx.font = "bold 42px 'Playfair Display'"; ctx.fillStyle = "rgba(0,0,0,0.3)";
         ctx.textAlign = "right"; ctx.fillText("√(Raiz) Cuadrada²", canvas.width - 50, canvas.height - 50);
         const link = document.createElement('a');
-        link.download = 'diagrama-campo-vectorial-raiz-cuadrada.png';
+        link.download = 'campo-vectorial-raiz-cuadrada.png';
         link.href = canvas.toDataURL('image/png'); link.click();
     };
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
