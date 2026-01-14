@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Solve.js"></script>
     <script src="https://unpkg.com/d3@3/d3.min.js"></script>
     <script src="https://unpkg.com/function-plot/dist/function-plot.js"></script>
+     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap');
@@ -213,6 +214,14 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
                 </div>
             </div>
 
+<label>Componente R(x, y, z) [Profundidad - Opcional]</label>
+<div class="input-group">
+    <input id="input-r" type="text" placeholder="Ej: sin(z) o dejar vacío para 2D">
+    <div class="color-picker-container">
+        <input type="color" id="color-z" value="#00ff00">
+    </div>
+</div>
+
         <div style="background: white; border-radius: 28px; padding: 25px; border: 1px solid #e0e0e0; margin-top: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
     
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 20px;">
@@ -285,6 +294,22 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
             <div id="grafica"></div>
         </div>
         <div id="info-box">Colores interpolados por magnitud del vector</div>
+        
+        <div id="leyenda-color-container" style="margin-top: 15px; display: none;">
+    <div id="barra-gradiente" style="
+        height: 12px; 
+        width: 100%; 
+        border-radius: 6px; 
+        background: linear-gradient(to right, #ccc, #000);
+        margin-bottom: 5px;">
+    </div>
+    <div style="display: flex; justify-content: space-between; font-size: 10px; color: #666; font-family: 'Open Sans', sans-serif;">
+        <span>Débil (Magnitud Mín)</span>
+        <span id="valor-max-leyenda">Fuerte (Magnitud Máx)</span>
+    </div>
+</div>
+
+
 
         <div class="pills-nav-container">
             <button class="pill-btn active" onclick="showTab('ejemplos', this)">Ejemplos</button>
@@ -450,29 +475,56 @@ window.addEventListener('resize', procesar);
 function procesar(puntosExtra = null) {
     const pExpr = document.getElementById('input-p').value;
     const qExpr = document.getElementById('input-q').value;
+    const rExpr = document.getElementById('input-r').value; // [cite: 126]
+    
+    const containerGrafica = document.getElementById('grafica'); // [cite: 126]
+    
+    // --- LÓGICA DE DETECCIÓN 3D ---
+    if (rExpr && rExpr.trim() !== "") { // 
+        // 1. Detenemos animaciones 2D si estuvieran activas
+        if (animacionActiva) { // 
+            animacionActiva = false; // 
+            cancelAnimationFrame(animationId); // 
+            document.getElementById('icon-animar').setAttribute('data-lucide', 'play'); // 
+            lucide.createIcons(); // 
+        }
+        
+        // 2. Limpieza total para que Plotly tome el control
+        containerGrafica.innerHTML = ''; 
+        containerGrafica.style.display = 'block'; 
+        
+        // 3. Renderizamos y salimos
+        renderizar3D(pExpr, qExpr, rExpr); // 
+        return; // [cite: 128]
+        
+    } else {
+        // --- LIMPIEZA PARA VOLVER A 2D ---
+        // Esto elimina cualquier rastro de Plotly del div antes de que functionPlot tome el mando
+        if (window.Plotly) {
+            Plotly.purge(containerGrafica);
+        }
+        
+    }
+
+    // --- LÓGICA 2D (Solo se ejecuta si no hay R) ---
     const nSteps = parseInt(document.getElementById('densidad').value);
     const mScale = parseFloat(document.getElementById('magnitud').value);
     const colorStart = hexToRgb(document.getElementById('color-start').value);
     const colorEnd = hexToRgb(document.getElementById('color-end').value);
     const normalizar = document.getElementById('check-normalizar').checked;
-    
-    // Nueva variable para el escalado dinámico
     const viewRange = parseFloat(document.getElementById('input-range').value) || 10;
     
     const container = document.getElementById('contenedor-grafica');
     const width = container.offsetWidth - 20;
 
     try {
-        // 1. COMPILACIÓN
         const pFunc = nerdamer(pExpr).buildFunction(['x', 'y']);
         const qFunc = nerdamer(qExpr).buildFunction(['x', 'y']);
 
         let vectorData = [];
-        // El paso se calcula en base al rango actual para mantener la densidad visual
         const stepSize = (viewRange * 2) / nSteps;
         let calculos = [];
 
-        // 2. CÁLCULO DE MALLA DINÁMICA
         for (let i = -viewRange; i <= viewRange; i += stepSize) {
             for (let j = -viewRange; j <= viewRange; j += stepSize) {
                 try {
@@ -487,17 +539,28 @@ function procesar(puntosExtra = null) {
         }
 
         const maxMag = Math.max(...calculos.map(c => c.mag)) || 1;
+        
+        // Actualizar la leyenda 2D
+const leyenda = document.getElementById('leyenda-color-container');
+const barra = document.getElementById('barra-gradiente');
+const color1 = document.getElementById('color-start').value;
+const color2 = document.getElementById('color-end').value;
 
-        // 3. PUNTO CRÍTICO
+leyenda.style.display = 'block'; // Mostrar solo en 2D
+barra.style.background = `linear-gradient(to right, ${color1}, ${color2})`;
+document.getElementById('valor-max-leyenda').innerText = `Fuerte (${maxMag.toFixed(2)})`;
+
+
+        // Punto Crítico
         const critico = calculos.reduce((min, p) => p.mag < min.mag ? p : min, calculos[0]);
         const inputCoord = document.getElementById('coordSola');
-        if (critico && (critico.mag / maxMag) < 0.1) { // Proporcional al campo actual
+        if (critico && (critico.mag / maxMag) < 0.1) {
             inputCoord.value = `${critico.i.toFixed(1)}, ${critico.j.toFixed(1)}`;
         } else {
             inputCoord.value = "No detectado";
         }
 
-        // 4. CONSTRUCCIÓN DE VECTORES (FLECHAS)
+        // Construcción de Flechas
         calculos.forEach(p => {
             const factorEscala = normalizar ? 1 : (p.mag / maxMag);
             const nvx = (p.vx / (p.mag + 0.0001)) * mScale * factorEscala;
@@ -505,14 +568,15 @@ function procesar(puntosExtra = null) {
             const color = interpolarColor(colorStart, colorEnd, p.mag / maxMag);
             const xF = p.i + nvx, yF = p.j + nvy;
             const angle = Math.atan2(nvy, nvx);
-            
-            // Ajustamos el tamaño de la punta de la flecha al rango para que no se vea desproporcionada
             const pL = (mScale * 0.35) * (normalizar ? 1 : Math.max(0.2, factorEscala));
-            const p1x = xF - pL * Math.cos(angle - 0.5), p1y = yF - pL * Math.sin(angle - 0.5);
-            const p2x = xF - pL * Math.cos(angle + 0.5), p2y = yF - pL * Math.sin(angle + 0.5);
-
+            
             vectorData.push({
-                points: [[p.i, p.j], [xF, yF], [p1x, p1y], [xF, yF], [p2x, p2y]],
+                points: [
+                    [p.i, p.j], [xF, yF], 
+                    [xF - pL * Math.cos(angle - 0.5), yF - pL * Math.sin(angle - 0.5)], 
+                    [xF, yF], 
+                    [xF - pL * Math.cos(angle + 0.5), yF - pL * Math.sin(angle + 0.5)]
+                ],
                 fnType: 'points',
                 graphType: 'polyline',
                 color: color,
@@ -520,16 +584,13 @@ function procesar(puntosExtra = null) {
             });
         });
 
-        // 5. OBTENER LÍNEAS DE CORRIENTE (Pasamos el rango actual para el cálculo)
         const lineasFlujo = calcularStreamlines(pFunc, qFunc, viewRange);
 
-        // 6. RENDERIZADO ÚNICO
         functionPlot({
             target: "#grafica",
             width: width,
             height: width * 0.8,
             grid: true,
-            // Los dominios ahora son dinámicos según el slider de Zoom
             xAxis: { domain: [-viewRange * 1.1, viewRange * 1.1] },
             yAxis: { domain: [-viewRange * 0.9, viewRange * 0.9] },
             data: [
@@ -742,6 +803,101 @@ function calcularStreamlines(pFunc, qFunc, currentRange) {
     }
     return lineas;
 }
+
+
+function renderizar3D(pExpr, qExpr, rExpr) {
+    const container = document.getElementById('grafica');
+    container.style.display = 'block';
+    container.innerHTML = '';
+
+    // 1. LEER PARÁMETROS DINÁMICOS [cite: 344, 345]
+    const range = parseFloat(document.getElementById('input-range').value) || 10;
+    const densidad = parseInt(document.getElementById('densidad').value); 
+    const escalaFlechas = parseFloat(document.getElementById('magnitud').value);
+    
+    // Convertir tus colores hexadecimales a formato compatible con Plotly [cite: 330]
+    const c1 = document.getElementById('color-start').value;
+    const c2 = document.getElementById('color-end').value;
+
+    // Ajustar densidad: Plotly 3D es pesado, escalamos la densidad de forma segura
+    const n = Math.floor(densidad / 2.5); 
+
+    try {
+        const pFunc = nerdamer(pExpr).buildFunction(['x', 'y', 'z']);
+        const qFunc = nerdamer(qExpr).buildFunction(['x', 'y', 'z']);
+        const rFunc = nerdamer(rExpr).buildFunction(['x', 'y', 'z']);
+
+        let x = [], y = [], z = [], u = [], v = [], w = [];
+        const step = (range * 2) / n;
+
+        for (let i = -range; i <= range; i += step) {
+            for (let j = -range; j <= range; j += step) {
+                for (let k = -range; k <= range; k += step) {
+                    x.push(i); y.push(j); z.push(k);
+                    u.push(pFunc(i, j, k));
+                    v.push(qFunc(i, j, k));
+                    w.push(rFunc(i, j, k));
+                }
+            }
+        }
+
+       // Sustituye el antiguo bloque 'const data = [...]' por este:
+       const data = [{
+    type: 'cone',
+    x: x, 
+    y: y, 
+    z: z,
+    u: u, 
+    v: v, 
+    w: w,
+    sizemode: 'scaled',
+    // Esta línea vincula la escala de las flechas al slider de "magnitud"
+    sizeref: escalaFlechas * 1.5, 
+    // Esta línea hace que el cono nazca desde el punto (pareciendo una flecha)
+    anchor: 'tail', 
+    showscale: true,
+    // Esta línea aplica tus colores personalizados
+    colorscale: [[0, c1], [1, c2]], 
+    hoverinfo: 'u+v+w',
+    // Configuración del diagrama de color (colorbar)
+    colorbar: {
+        thickness: 15,
+        title: {
+            text: 'MAGNITUD',
+            font: { size: 12, family: 'Arial' }
+        },
+        outlinecolor: 'transparent',
+        len: 0.8,
+        ypad: 0,
+        tickfont: { size: 10, color: '#666' },
+        // Estética redondeada y profesional
+        bgcolor: 'rgba(255,255,255,0.8)',
+        bordercolor: '#eee',
+        borderwidth: 1
+    }
+}];
+        const layout = {
+            scene: {
+                xaxis: { title: 'X', gridcolor: '#eee' },
+                yaxis: { title: 'Y', gridcolor: '#eee' },
+                zaxis: { title: 'Z', gridcolor: '#eee' },
+                aspectmode: 'cube'
+            },
+            margin: { t: 0, b: 0, l: 0, r: 0 },
+            height: 550,
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)'
+        };
+
+        Plotly.newPlot('grafica', data, layout, {responsive: true});
+    } catch (e) {
+        console.error("Error en render 3D:", e);
+    }
+}
+
+
+    Plotly.newPlot('grafica', data, layout);
+
 
 </script>
 </body>
