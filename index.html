@@ -537,25 +537,24 @@ function procesar(puntosExtra = null) {
     
     const containerGrafica = document.getElementById('grafica'); 
     
-    // --- LÓGICA DE DETECCIÓN 3D ---
+   // --- LÓGICA DE DETECCIÓN 3D ---
     if (rExpr && rExpr.trim() !== "") { 
-        // 1. Detenemos animaciones 2D si estuvieran activas
-        if (animacionActiva) { 
-            animacionActiva = false; 
-            cancelAnimationFrame(animationId); 
-            document.getElementById('icon-animar').setAttribute('data-lucide', 'play'); 
-            lucide.createIcons(); 
-        }
-        
-        // 2. Limpieza total para que Plotly tome el control
-        containerGrafica.innerHTML = '';  
+        // 1. Limpieza del contenedor para que Plotly tome el control
+        containerGrafica.innerHTML = '';
         containerGrafica.style.display = 'block'; 
         
-        // 3. Renderizamos y salimos
+        // 2. Renderizamos el escenario 3D
         renderizar3D(pExpr, qExpr, rExpr); 
-        return; 
-        
-    } else {
+
+        // 3. Si la animación estaba activa, reiniciamos las partículas 3D para el nuevo campo
+        if (animacionActiva) {
+            const range = parseFloat(document.getElementById('input-range').value) || 10;
+            initParticulas3D(range);
+        }
+        return;
+    }
+    
+    else {
         // --- LIMPIEZA PARA VOLVER A 2D ---
         if (window.Plotly) {
             Plotly.purge(containerGrafica);
@@ -576,7 +575,9 @@ function procesar(puntosExtra = null) {
     try {
         const pFunc = nerdamer(pExpr).buildFunction(['x', 'y']);
         const qFunc = nerdamer(qExpr).buildFunction(['x', 'y']);
-
+pFuncCompilada = nerdamer(pExpr).buildFunction(['x', 'y', 'z']);
+        qFuncCompilada = nerdamer(qExpr).buildFunction(['x', 'y', 'z']);
+        rFuncCompilada = nerdamer(rExpr).buildFunction(['x', 'y', 'z']);
         // Asignación para que el motor de animación vea las funciones actuales
         pFuncGlobal = pFunc; 
         qFuncGlobal = qFunc;
@@ -1045,6 +1046,24 @@ function renderizar3D(pExpr, qExpr, rExpr) {
         
         // CAPA PARA MOLECULAS (Necesaria para que la animación funcione)
         
+        // --- NUEVO: CAPA PARA PARTÍCULAS (MOLÉCULAS) ---
+        data.push({
+            type: 'scatter3d',
+            mode: 'markers',
+            x: [], y: [], z: [], // Se llenan en animarLoop
+            marker: {
+                size: 3,
+                color: '#ffffff',
+                symbol: 'circle',
+                line: { color: '#000000', width: 0.5 },
+                opacity: 0.8
+            },
+            name: 'Móleculas',
+            hoverinfo: 'none'
+        });
+        
+        // Guardamos la posición de este rastro para que animarLoop sepa cuál actualizar
+        window.indiceMoleculas3D = data.length - 1;
         
         const layout = {
             scene: {
@@ -1074,7 +1093,7 @@ function initParticulas3D(range) {
             x: (Math.random() * 2 - 1) * range,
             y: (Math.random() * 2 - 1) * range,
             z: (Math.random() * 2 - 1) * range,
-            vida: Math.random() * 100
+            vida: Math.random() * 50
         });
     }
 }
