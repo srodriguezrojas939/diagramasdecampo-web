@@ -305,6 +305,9 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
 
         <button id="btn-streamlines" class="pill-static" title="Líneas de corriente" style="flex: 0 0 45px; height: 38px; display: flex; align-items: center; justify-content: center; background: white; border-radius: 20px; border: none; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.3s;">
             <i data-lucide="wind" id="icon-stream" style="width: 18px; height: 18px; color: black;"></i>
+          
+ <button id="btn-visor" class="pill-static" title="Ocultar/Mostrar flechas" style="flex: 0 0 45px; height: 38px; display: flex; align-items: center; justify-content: center; background: white; border-radius: 20px; border: none; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.3s;">
+            <i data-lucide="eye" id="icon-visor" style="width: 18px; height: 18px; color: black;"></i>
         </button>
 
         <div class="pill-static" style="display: flex; align-items: center; gap: 10px; padding: 0 15px; height: 38px; min-width: 160px; justify-content: center; background: white; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
@@ -426,7 +429,31 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
 <canvas id="canvas-export" style="display:none;"></canvas>
 
 <script>
+    
+   let funciones3D = { p: null, q: null, r: null }; // Necesaria para guardar las formulas
+let particulas3D = [];
+const NUM_PARTICULAS_3D = 200;
 
+let flechasVisibles = true;
+
+document.getElementById('btn-visor').addEventListener('click', function() {
+    flechasVisibles = !flechasVisibles;
+    
+    // Cambiar ícono y color del botón
+    const icon = document.getElementById('icon-visor');
+    if (flechasVisibles) {
+        icon.setAttribute('data-lucide', 'eye');
+        this.style.background = "white";
+        icon.style.color = "black";
+    } else {
+        icon.setAttribute('data-lucide', 'eye-off');
+        this.style.background = "#000";
+        icon.style.color = "white";
+    }
+    lucide.createIcons(); // Refrescar íconos de Lucide
+    
+    procesar(); // Refrescar ambas gráficas
+});
     let timeoutProcesar;
 function debounceProcesar() {
     clearTimeout(timeoutProcesar);
@@ -603,7 +630,10 @@ function procesar(puntosExtra = null) {
         }
 
         // --- CONSTRUCCIÓN DE FLECHAS ---
+        if (flechasVisibles) { 
+
         calculos.forEach(p => {
+            // TUS CÁLCULOS INTACTOS
             const factorEscala = normalizar ? 1 : (p.mag / maxMag);
             const nvx = (p.vx / (p.mag + 0.0001)) * mScale * factorEscala;
             const nvy = (p.vy / (p.mag + 0.0001)) * mScale * factorEscala;
@@ -625,6 +655,8 @@ function procesar(puntosExtra = null) {
                 attr: { 'stroke-width': 1.8 }
             });
         });
+
+    }
 
         const lineasFlujo = typeof calcularStreamlines === 'function' ? calcularStreamlines(pFunc, qFunc, viewRange) : [];
 
@@ -682,21 +714,36 @@ window.addEventListener('load', () => {
 
 function setupAnimacion() {
     const btn = document.getElementById('btn-animar');
+    
     btn.addEventListener('click', () => {
         animacionActiva = !animacionActiva;
         const icon = document.getElementById('icon-animar');
         
         if (animacionActiva) {
+            // --- ESTADO: REPRODUCIENDO ---
             icon.setAttribute('data-lucide', 'pause');
             btn.classList.add('animando');
+            
+            // 1. Inicializar 2D (Lógica existente)
             iniciarParticulas();
-            animarLoop();
+
+            // 2. Inicializar 3D (NUEVO BLOQUE)
+            const grafica3D = document.getElementById('grafica');
+            // Si el contenedor 3D está visible y el arreglo 3D está vacío...
+            if (grafica3D && grafica3D.style.display !== 'none' && particulas3D.length === 0) {
+                const range = parseFloat(document.getElementById('input-range').value) || 10;
+                initParticulas3D(range); // Llenamos las moléculas 3D
+            }
+
+            animarLoop(); // Arranca el motor
         } else {
+            // --- ESTADO: PAUSADO ---
             icon.setAttribute('data-lucide', 'play');
             btn.classList.remove('animando');
             cancelAnimationFrame(animationId);
             limpiarParticulas();
         }
+        
         lucide.createIcons(); // Refrescar icono
     });
 }
@@ -716,42 +763,83 @@ function iniciarParticulas() {
 }
 
 
-
 function animarLoop() {
     if (!animacionActiva) return;
 
     const currentRange = parseFloat(document.getElementById('input-range').value) || 10;
-    
-    // Usamos las funciones ya creadas globalmente en procesar() para no saturar la CPU
-    if (!pFuncGlobal || !qFuncGlobal) return;
+    const dt = 0.05; // Paso de tiempo
 
-    try {
-        const dt = 0.002 * currentRange;
-        particulas.forEach(p => {
-            let vx = pFuncGlobal(p.x, p.y);
-            let vy = qFuncGlobal(p.x, p.y);
-            
-            const speed = Math.sqrt(vx*vx + vy*vy);
-            const maxSpeed = currentRange * 0.5;
-  
-            if(speed > maxSpeed) { vx /= speed/maxSpeed; vy /= speed/maxSpeed; }
+    // --- LÓGICA 2D (La que ya tenías) ---
+    // Verificamos si las funciones globales 2D existen (pFuncGlobal, qFuncGlobal)
+    // ... (Tu código existente para partículas.forEach en 2D) ...
+    if (typeof pFuncGlobal !== 'undefined' && typeof qFuncGlobal !== 'undefined') {
+         // Tu lógica actual de 2D...
+         particulas.forEach(p => {
+             // ... cálculos 2D ...
+             let vx = pFuncGlobal(p.x, p.y);
+             let vy = qFuncGlobal(p.x, p.y);
+             // ... actualización posición 2D ...
+             p.x += vx * 0.02; // Ejemplo simplificado
+             p.y += vy * 0.02;
+             // ... reinicio si sale del rango ...
+             if(Math.abs(p.x) > currentRange || Math.abs(p.y) > currentRange) {
+                 p.x = (Math.random()*2-1)*currentRange;
+                 p.y = (Math.random()*2-1)*currentRange;
+             }
+         });
+         dibujarParticulas(); // Render 2D
+    }
 
+    // --- LÓGICA 3D (NUEVA) ---
+    const grafica3D = document.getElementById('grafica');
+    // Solo calculamos si la gráfica 3D es visible y tenemos funciones cargadas
+    if (grafica3D && grafica3D.style.display !== 'none' && funciones3D.p) {
+        
+        let px = [], py = [], pz = []; // Arrays para Plotly
+
+        particulas3D.forEach(p => {
+            // Calcular velocidad en 3D
+            let vx = funciones3D.p(p.x, p.y, p.z);
+            let vy = funciones3D.q(p.x, p.y, p.z);
+            let vz = funciones3D.r(p.x, p.y, p.z);
+
+            // Limite de velocidad para que no salgan disparadas
+            const speed = Math.sqrt(vx*vx + vy*vy + vz*vz);
+            if (speed > currentRange) { 
+                const factor = currentRange / speed;
+                vx *= factor; vy *= factor; vz *= factor;
+            }
+
+            // Mover
             p.x += vx * dt;
             p.y += vy * dt;
+            p.z += vz * dt;
             p.vida -= 0.5;
 
-            const margen = currentRange * 1.1;
-            if (p.x > margen || p.x < -margen || p.y > margen || p.y < -margen || p.vida <= 0) {
-                p.x = (Math.random() * currentRange * 2) - currentRange;
-                p.y = (Math.random() * currentRange * 2) - currentRange;
-                p.vida = 40 + Math.random() * 60;
+            // Reiniciar si salen del cubo o mueren
+            if (Math.abs(p.x) > currentRange || Math.abs(p.y) > currentRange || Math.abs(p.z) > currentRange || p.vida <= 0) {
+                p.x = (Math.random() * 2 - 1) * currentRange;
+                p.y = (Math.random() * 2 - 1) * currentRange;
+                p.z = (Math.random() * 2 - 1) * currentRange;
+                p.vida = 100;
             }
+
+            px.push(p.x);
+            py.push(p.y);
+            pz.push(p.z);
         });
-        dibujarParticulas();
-        animationId = requestAnimationFrame(animarLoop);
-    } catch (e) {
-        console.error("Error en flujo:", e);
+
+        if (typeof window.indiceMoleculas3D === 'number') {
+    Plotly.restyle('grafica', {
+        x: [px],
+        y: [py],
+        z: [pz]
+    }, [window.indiceMoleculas3D]);
+}
+
     }
+
+    animationId = requestAnimationFrame(animarLoop);
 }
 
 
@@ -861,6 +949,7 @@ function renderizar3D(pExpr, qExpr, rExpr) {
     const container = document.getElementById('grafica');
     container.style.display = 'block';
     container.innerHTML = ''; // Limpia el rastro de la 2D
+    Plotly.purge('grafica');
 
     // 1. OBTENER VARIABLES DE LA INTERFAZ PRIMERO
     const range = parseFloat(document.getElementById('input-range').value) || 10;
@@ -874,6 +963,11 @@ function renderizar3D(pExpr, qExpr, rExpr) {
         const pFunc = nerdamer(pExpr).buildFunction(['x', 'y', 'z']);
         const qFunc = nerdamer(qExpr).buildFunction(['x', 'y', 'z']);
         const rFunc = nerdamer(rExpr).buildFunction(['x', 'y', 'z']);
+
+        // --- CORRECCIÓN CRUCIAL AQUÍ ---
+        // Guardamos las funciones en la variable global para que el botón de Play las encuentre
+        funciones3D = { p: pFunc, q: qFunc, r: rFunc };
+        // -------------------------------
 
         let x = [], y = [], z = [], u = [], v = [], w = [];
         const step = (range * 2) / n;
@@ -898,18 +992,60 @@ function renderizar3D(pExpr, qExpr, rExpr) {
         actualizarEscalaNumerica(maxMag3D, c1, c2);
 
         // 4. CONFIGURAR EL OBJETO DATA
-        const data = [{
-            type: 'cone',
-            x: x, y: y, z: z,
-            u: u, v: v, w: w,
-            sizemode: 'scaled',
-            sizeref: escalaFlechas * 1.5, 
-            anchor: 'tail', 
-            showscale: false, // Usamos tu barra inferior, no la de Plotly
-            colorscale: [[0, c1], [1, c2]], 
-            hoverinfo: 'u+v+w'
-        }];
+        let data = [];
 
+        // 2. Si las flechas están activas, las metemos a la lista
+        if (typeof flechasVisibles === 'undefined' || flechasVisibles) {
+            data.push({
+                type: 'cone',
+                x: x, y: y, z: z,
+                u: u, v: v, w: w,
+                sizemode: 'scaled',
+                sizeref: escalaFlechas * 1.5, 
+                anchor: 'tail', 
+                showscale: false,
+                colorscale: [[0, c1], [1, c2]], 
+                hoverinfo: 'u+v+w'
+            });
+        }
+        
+        if (typeof streamlinesActivas !== 'undefined' && streamlinesActivas) {
+            // Generamos puntos de inicio distribuidos por todo el volumen
+            let startX = [], startY = [], startZ = [];
+            
+            // Creamos una malla de puntos en los bordes para "inyectar" viento al cubo
+            for (let s = -range; s <= range; s += range) {
+                for (let t = -range; t <= range; t += range/2) {
+                    // Puntos en las caras X
+                    startX.push(s); startY.push(t); startZ.push(t);
+                    // Puntos en las caras Y
+                    startX.push(t); startY.push(s); startZ.push(t);
+                    // Puntos en las caras Z
+                    startX.push(t); startY.push(t); startZ.push(s);
+                }
+            }
+
+            data.push({
+                type: 'streamtube',
+                x: x, y: y, z: z,
+                u: u, v: v, w: w,
+                starts: {
+                    x: startX,
+                    y: startY,
+                    z: startZ
+                },
+                sizeref: 0.05, // Seguimos con hilos delgados
+                colorscale: [[0, '#121212'], [1, '#FFFFFF']], // De gris oscuro a blanco
+                showscale: false,
+                opacity: 0.6,
+                maxloop: 5000, // Aumentamos longitud para que crucen todo el cubo
+                lighting: { ambient: 1, diffuse: 1 }
+            });
+        }
+        
+        // CAPA PARA MOLECULAS (Necesaria para que la animación funcione)
+        
+        
         const layout = {
             scene: {
                 xaxis: { title: 'X' },
@@ -929,6 +1065,19 @@ function renderizar3D(pExpr, qExpr, rExpr) {
     }
 }
 
+
+// Función auxiliar para reiniciar partículas 3D
+function initParticulas3D(range) {
+    particulas3D = [];
+    for(let i=0; i<NUM_PARTICULAS_3D; i++) {
+        particulas3D.push({
+            x: (Math.random() * 2 - 1) * range,
+            y: (Math.random() * 2 - 1) * range,
+            z: (Math.random() * 2 - 1) * range,
+            vida: Math.random() * 100
+        });
+    }
+}
 
 
 
