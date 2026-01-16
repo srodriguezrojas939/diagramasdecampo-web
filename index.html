@@ -198,6 +198,30 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
     transition: all 0.1s linear; 
 }
 
+#select-temas {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 50px;
+    padding: 5px 10px;
+    font-family: 'Open Sans', sans-serif;
+    transition: all 0.3s ease;
+}
+
+#select-temas:hover {
+    border-color: #ccc;
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.2);
+}
+
+.info-card {
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+}
+
+
+
     </style>
 </head>
 <body>
@@ -230,7 +254,7 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
             <div class="input-group">
                 <input id="input-p" type="text" value="-y">
                 <div class="color-picker-container">
-                    <input type="color" id="color-start" value="#0000ff">
+                    <input type="color" id="color-start" value="#ffea00">
                 </div>
             </div>
             
@@ -238,7 +262,7 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
             <div class="input-group">
                 <input id="input-q" type="text" value="x">
                 <div class="color-picker-container">
-                    <input type="color" id="color-end" value="#ff0000">
+                    <input type="color" id="color-end" value="#228f8b">
                 </div>
             </div>
 
@@ -246,7 +270,7 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
 <div class="input-group">
     <input id="input-r" type="text" placeholder="Ej: sin(z) o dejar vacío para 2D">
     <div class="color-picker-container">
-        <input type="color" id="color-z" value="#00ff00">
+        <input type="color" id="color-z" value="#440154">
     </div>
 </div>
 
@@ -274,6 +298,21 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
     <input type="range" id="input-range" min="2" max="50" value="10" oninput="procesar()" class="modern-slider">
 </div>
 
+<div class="control-item" style="display: flex; flex-direction: column; gap: 5px; width: 100%; box-sizing: border-box;">
+    <label>Esquema de Color</label>
+    <select id="select-temas" class="input-field" style="width: 100%; min-width: 140px; cursor: pointer; box-sizing: border-box;">
+        <option value="custom">Personalizado</option>
+        <option value="termico">Termodinámico</option>
+        <option value="turbo">turbo</option>
+        <option value="cyber">Electro</option>
+        <option value="viridis">viridis</option>
+        <option value="plasma">plasma</option>
+        <option value="inferno">inferno</option>
+        <option value="magma">magma</option>
+        <option value="cividis">cividis</option>
+    </select>
+</div>
+
     </div>
 
     <div style="height: 1px; background: #f0f0f0; margin-bottom: 15px;"></div>
@@ -288,6 +327,7 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
             <span class="slider-toggle"></span>
         </label>
     </div>
+
 </div>
         </div>
 
@@ -357,31 +397,36 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
     
     <h2 style="font-family: 'Playfair Display', serif; font-size: 36px; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px;">Guia de usos.</h2>
     
-    <p>Esta herramienta permite representar magnitudes y direcciones de fuerzas en un plano bidimensional a través de vectores posicionados en una malla de coordenadas.</p>
+    <p>Esta herramienta permite representar magnitudes y direcciones de fuerzas en un espacio bidimensional o tridimensional a través de vectores posicionados en una malla de coordenadas.</p>
 
-    <h3 style="font-size: 24px; margin-top: 35px; font-weight: bold;">1. Componentes del Campo</h3>
-    <p>Un campo vectorial asigna un vector <strong>F(x,y) = P i + Q j</strong> a cada punto del plano. Para graficarlo, debe definir el comportamiento de sus dos componentes principales:</p>
-    
-    <div style="border: 1px solid #ccc; border-radius: 15px; overflow: hidden; margin: 20px 0;">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: #f8f8f8; border-bottom: 1px solid #ccc;">
-                    <th style="padding: 12px; text-align: left; border-right: 1px solid #ccc;">Componente</th>
-                    <th style="padding: 12px; text-align: left;">Descripción funcional</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr style="border-bottom: 1px solid #ccc;">
-                    <td style="padding: 12px; border-right: 1px solid #ccc;"><strong>P (i)</strong></td>
-                    <td style="padding: 12px;">Define la fuerza o desplazamiento en el eje <strong>Horizontal</strong>.</td>
-                </tr>
-                <tr>
-                    <td style="padding: 12px; border-right: 1px solid #ccc;"><strong>Q (j)</strong></td>
-                    <td style="padding: 12px;">Define la fuerza o desplazamiento en el eje <strong>Vertical</strong>.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+<h3 style="font-size: 24px; margin-top: 35px; font-weight: bold;">1. Componentes del Campo</h3>
+<p>Un campo vectorial asigna un vector <strong>F(x,y,z) = P i + Q j + R k</strong> a cada punto del espacio. Puedes ver el diagrama tanto en 2D como en 3D, Para graficarlo, debes definir el comportamiento de dos o tres componentes principales:</p>
+
+<div style="border: 1px solid #ccc; border-radius: 15px; overflow: hidden; margin: 20px 0;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background: #f8f8f8; border-bottom: 1px solid #ccc;">
+                <th style="padding: 12px; text-align: left; border-right: 1px solid #ccc;">Componente</th>
+                <th style="padding: 12px; text-align: left;">Descripción funcional</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="border-bottom: 1px solid #ccc;">
+                <td style="padding: 12px; border-right: 1px solid #ccc;"><strong>P (i)</strong></td>
+                <td style="padding: 12px;">Define la fuerza o desplazamiento en el eje <strong>X</strong> (horizontal).</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #ccc;">
+                <td style="padding: 12px; border-right: 1px solid #ccc;"><strong>Q (j)</strong></td>
+                <td style="padding: 12px;">Define la fuerza o desplazamiento en el eje <strong>Y</strong> (vertical).</td>
+            </tr>
+            <tr>
+                <td style="padding: 12px; border-right: 1px solid #ccc;"><strong>R (k)</strong></td>
+                <td style="padding: 12px;">Define la fuerza o desplazamiento en el eje <strong>Z</strong> (profundidad).</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
 
     <h3 style="font-size: 24px; margin-top: 35px; font-weight: bold;">2. Sintaxis Matemática</h3>
     <p>Utilice las reglas de escritura estándar para que el motor procese las ecuaciones correctamente:</p>
@@ -413,14 +458,25 @@ input:checked + .slider-toggle:before { transform: translateX(20px); }
     <ul>
         <li><strong>Navegación:</strong> Arrastre con el clic izquierdo para desplazarse por el plano de coordenadas.</li>
         <li><strong>Zoom:</strong> Utilice la rueda del ratón para acercar o alejar la vista.</li>
-        <li><strong>Captura:</strong> El botón de "Descargar PNG" guardará una imagen de alta resolución de la configuración actual de su campo vectorial.</li>
+        <li><strong>Captura:</strong> El botón de "Descargar PNG" guardará una imagen de la configuración actual de su campo vectorial.</li>
+          <li><strong>Botón reproducir</strong> El botón de reproducir activará una animación de particulas en el diagrama</li>
+            <li><strong>Botón de "viento"</strong> El botón de "viento" o "streamlines" generará lineas grises con la trayectoria que podria obtener el viento o un fluido en el diagrama</li>
+               <li><strong>Botón de "ojo"</strong> El botón de "ojo" al estar activado podrás eliminar las flechas del diagrama para poder visualizar optimamente las lineas de viento o la animación de las particulas</li>
     </ul>
 
-    <div style="border: 1px solid #ccc; padding: 25px; border-radius: 20px; margin-top: 35px; background: #fafafa; font-style: italic;">
-        <strong>Nota técnica:</strong>
-        <p style="margin-top: 10px;">En física, este tipo de representaciones son esenciales para visualizar fenómenos como el flujo de fluidos, campos eléctricos o gradientes de temperatura. Experimente con funciones combinadas para observar puntos de convergencia (sumideros) o divergencia (fuentes).</p>
+    
     </div>
 
+</div>
+
+<div style="display: flex; justify-content: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+    <button id="btn-descargar-final" class="btn-animar" 
+        onmouseover="this.style.backgroundColor='#f3f4f6'" 
+        onmouseout="this.style.backgroundColor='white'"
+        style="background-color: white; color: #00000 ; border: 1px solid #d1d5db; width: auto; min-width: 180px; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 25px; transition: all 0.3s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-radius: 9999px; cursor: pointer;">
+        <i data-lucide="download" style="width: 18px; height: 18px;"></i>
+        <span style="font-weight: 600; font-family: 'Open Sans', sans-serif; ">Descargar PNG</span>
+    </button>
 </div>
 
     </div>
@@ -469,7 +525,18 @@ const dataTabs = {
         { s: 'x-y | x+y', t: 'ESPIRAL EXPANSIVA' },
         { s: 'sin(y) | sin(x)', t: 'CAMPO PERIÓDICO' },
         { s: '1 | cos(x)', t: 'FLUJO UNIDIRECCIONAL' },
-        { s: 'y | -x', t: 'ROTACIÓN HORARIA' }
+        { s: 'y | -x', t: 'ROTACIÓN HORARIA' },
+        { s: '-y | x | 0', t: 'VÓRTICE CILÍNDRICO (ROTACIÓN EN XY)' },
+{ s: 'x | y | z', t: 'FUENTE TRIDIMENSIONAL (EXPANSIÓN)' },
+{ s: '-x | -y | -z', t: 'SUMIDERO TRIDIMENSIONAL (ATRACCIÓN)' },
+{ s: 'y | -x | z', t: 'ROTACIÓN HELICOIDAL ASCENDENTE' },
+{ s: '0 | 0 | z', t: 'FLUJO LINEAL VERTICAL' },
+{ s: 'sin(y) | sin(x) | sin(z)', t: 'CAMPO PERIÓDICO TRIDIMENSIONAL' },
+{ s: 'y | x | -z', t: 'ESPIRAL CON CONTRACCIÓN EN Z' },
+{ s: 'x-y | x+y | z', t: 'CAMPO HIPERBÓLICO 3D' },
+{ s: '-y | x | sin(z)', t: 'VÓRTICE CON ONDULACIÓN EN Z' },
+{ s: '1 | 0 | 0', t: 'FLUJO UNIDIRECCIONAL EN X' }
+
     ],
     simbolos: [
         { s: '(', t: 'ABRIR' }, { s: ')', t: 'CERRAR' }, { s: '+', t: 'SUMA' }, { s: '-', t: 'RESTA' },
@@ -495,9 +562,10 @@ function renderGrids() {
 }
 
 function aplicarEjemplo(val) {
-    const [p, q] = val.split(' | ');
+    const [p, q, r] = val.split(' | ');
     document.getElementById('input-p').value = p.trim();
     document.getElementById('input-q').value = q.trim();
+        document.getElementById('input-r').value = r.trim();
     procesar();
 }
 
@@ -947,6 +1015,10 @@ function calcularStreamlines(pFunc, qFunc, currentRange) {
 
 
 function renderizar3D(pExpr, qExpr, rExpr) {
+    
+    const cP = document.getElementById('color-start').value; // Color para P (Base)
+const cQ = document.getElementById('color-end').value;   // Color para Q (Medio)
+const cR = document.getElementById('color-z').value;     // Color para R (Máximo)
     const container = document.getElementById('grafica');
     container.style.display = 'block';
     container.innerHTML = ''; // Limpia el rastro de la 2D
@@ -993,22 +1065,28 @@ function renderizar3D(pExpr, qExpr, rExpr) {
         actualizarEscalaNumerica(maxMag3D, c1, c2);
 
         // 4. CONFIGURAR EL OBJETO DATA
-        let data = [];
+       if (typeof actualizarEscalaNumerica === 'function') {
+    actualizarEscalaNumerica(maxMag3D, cP, cQ, cR); 
+}
 
-        // 2. Si las flechas están activas, las metemos a la lista
-        if (typeof flechasVisibles === 'undefined' || flechasVisibles) {
-            data.push({
-                type: 'cone',
-                x: x, y: y, z: z,
-                u: u, v: v, w: w,
-                sizemode: 'scaled',
-                sizeref: escalaFlechas * 1.5, 
-                anchor: 'tail', 
-                showscale: false,
-                colorscale: [[0, c1], [1, c2]], 
-                hoverinfo: 'u+v+w'
-            });
-        }
+let data = [];
+if (typeof flechasVisibles === 'undefined' || flechasVisibles) {
+    data.push({
+        type: 'cone',
+        x: x, y: y, z: z, u: u, v: v, w: w,
+        sizemode: 'scaled',
+        sizeref: escalaFlechas * 1.5,
+        anchor: 'tail',
+        showscale: false,
+        // ESCALA DE 3 COLORES: 0% -> P, 50% -> Q, 100% -> R
+        colorscale: [
+            [0, cP],   // Intensidad mínima
+            [0.5, cQ], // Intensidad media
+            [1, cR]    // Intensidad máxima
+        ],
+        hoverinfo: 'u+v+w'
+    });
+}
         
         if (typeof streamlinesActivas !== 'undefined' && streamlinesActivas) {
             // Generamos puntos de inicio distribuidos por todo el volumen
@@ -1100,16 +1178,22 @@ function initParticulas3D(range) {
 
 
 
-
-function actualizarEscalaNumerica(maxMag, c1, c2) {
+function actualizarEscalaNumerica(maxMag, c1, c2, c3) {
     const leyenda = document.getElementById('leyenda-color-container');
     const barra = document.getElementById('barra-gradiente');
     
     if (leyenda && barra) {
         leyenda.style.display = 'block';
-        barra.style.background = `linear-gradient(to right, ${c1}, ${c2})`;
         
-        // Calcular y mostrar valores distribuidos
+        // Si recibimos 3 colores (Modo 3D), creamos un gradiente triple
+        if (c3) {
+            barra.style.background = `linear-gradient(to right, ${c1}, ${c2}, ${c3})`;
+        } else {
+            // Modo 2D normal con 2 colores
+            barra.style.background = `linear-gradient(to right, ${c1}, ${c2})`;
+        }
+        
+        // Actualizar los textos de la escala
         document.getElementById('val-0').innerText = "0.00";
         document.getElementById('val-25').innerText = (maxMag * 0.25).toFixed(2);
         document.getElementById('val-50').innerText = (maxMag * 0.50).toFixed(2);
@@ -1117,6 +1201,103 @@ function actualizarEscalaNumerica(maxMag, c1, c2) {
         document.getElementById('val-100').innerText = maxMag.toFixed(2);
     }
 }
+
+// Definición de los esquemas de color
+const esquemasTemas = {
+    termico: { p: '#0000ff', q: '#ffff00', r: '#ff0000' },
+    turbo:   { p: '#30123b', q: '#a2fc3c', r: '#7a0403' },
+    cyber:   { p: '#00f2ff', q: '#7000ff', r: '#ff00d9' },
+    viridis: { p: '#440154', q: '#21918c', r: '#fde725' },
+    plasma:  { p: '#0d0887', q: '#9c179e', r: '#f0f921' },
+    inferno: { p: '#000004', q: '#86255c', r: '#fcffa4' },
+    magma:   { p: '#000004', q: '#721f81', r: '#fcfdbf' },
+    cividis: { p: '#00224e', q: '#7a7a7e', r: '#fee333' }
+};
+
+document.getElementById('select-temas').addEventListener('change', function(e) {
+    const tema = esquemasTemas[e.target.value];
+    
+    if (tema) {
+        // 1. Actualizamos los valores de los inputs de color
+        document.getElementById('color-start').value = tema.p;
+        document.getElementById('color-end').value = tema.q;
+        
+        // El input R solo se actualiza si existe
+        const inputR = document.getElementById('color-z');
+        if (inputR) inputR.value = tema.r;
+
+        // 2. Disparamos la función procesar() automáticamente para ver los cambios
+        if (typeof procesar === 'function') {
+            procesar();
+        }
+    }
+});
+
+document.getElementById('select-temas').addEventListener('change', function(e) {
+    const tema = esquemasTemas[e.target.value];
+    if (tema) {
+        const rExpr = document.getElementById('input-r').value;
+        const es3D = rExpr && rExpr.trim() !== "";
+
+        if (!es3D) {
+            // --- MODO 2D: Contraste Extremo ---
+            // Ponemos el color inicial del tema en P
+            document.getElementById('color-start').value = tema.p;
+            // Ponemos el color FINAL del tema (el de R) en el recuadro de Q
+            // para que en 2D se vea el gradiente completo de punta a punta
+            document.getElementById('color-end').value = tema.r;
+            // Opcional: actualizamos el de Z también por si luego escribe en R
+            document.getElementById('color-z').value = tema.r;
+        } else {
+            // --- MODO 3D: Gradiente Triple ---
+            // Usamos la distribución normal de tres colores
+            document.getElementById('color-start').value = tema.p;
+            document.getElementById('color-end').value = tema.q;
+            document.getElementById('color-z').value = tema.r;
+        }
+
+        // Ejecutamos el procesamiento para aplicar los cambios visuales
+        if (typeof procesar === 'function') {
+            procesar();
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar íconos de Lucide
+    if (window.lucide) lucide.createIcons();
+
+    const btnDescargar = document.getElementById('btn-descargar-final');
+    
+    btnDescargar.addEventListener('click', () => {
+        // Detectar si estamos en 3D
+        const rExpr = document.getElementById('input-r').value;
+        const es3D = rExpr && rExpr.trim() !== "";
+
+        if (es3D) {
+            // Si es 3D, usamos la función nativa de Plotly para descargar
+            Plotly.downloadImage('grafica', {
+                format: 'png',
+                filename: 'campo-vectorial-3d-raiz-cuadrada',
+                height: 800,
+                width: 1000
+            });
+        } else {
+            // Si es 2D, usamos tu función personalizada
+            exportarImagen();
+        }
+    });
+
+    // Efecto visual al pasar el mouse
+    btnDescargar.addEventListener('mouseenter', () => {
+        btnDescargar.style.borderColor = '#7d7d7d';
+        btnDescargar.style.backgroundColor = '#f3f4f6';
+    });
+    btnDescargar.addEventListener('mouseleave', () => {
+        btnDescargar.style.borderColor = '#d1d5db';
+        btnDescargar.style.backgroundColor = 'white';
+    });
+});
 
 
     Plotly.newPlot('grafica', data, layout);
